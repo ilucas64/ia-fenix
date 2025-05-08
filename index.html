@@ -45,9 +45,7 @@
   <title>FÊNIX IA v2.4</title>
   <link rel="stylesheet" href="fenix.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js" defer></script>
 </head>
 <body>
   <div class="container">
@@ -73,25 +71,19 @@
       </section>
 
       <img id="preview" style="display: none; max-width: 100%; margin-top: 20px;" alt="Pré-visualização da imagem" />
-      <div id="resultadoVisual" class="painel" role="region" aria-live="polite">Resultado aparecerá aqui...</div>
+      <div id="resultadoVisual" class="painel" role="region" aria-live="polite">Sistema pronto! Tente arrastar uma imagem ou clicar nos botões.</div>
+      <div id="opcoesAventura" class="opcoes-aventura" style="display: none;"></div>
 
       <hr />
 
       <section class="mode-toggle">
-        <button id="toggleMathMode">Ativar Modo Matemático</button>
         <button id="toggleChatMode">Ativar Modo Conversa</button>
+        <button id="toggleMathMode">🧮 Modo Matemático</button>
         <button id="btnAventura">🧙 Modo Aventura</button>
-        <button id="btnAssistenteCodigo">💻 Assistente de Código</button>
       </section>
 
-      <div id="mathInteraction" class="interaction" style="display: none;">
-        <textarea id="mathQuestion" placeholder="Digite sua pergunta matemática..."></textarea>
-        <button id="btnEnviarMath">Enviar Pergunta</button>
-        <div id="mathAnswer">A resposta aparecerá aqui...</div>
-      </div>
-
       <div id="chatInteraction" class="interaction" style="display: none;">
-        <textarea id="entrada" placeholder="Digite sua pergunta ou comando..."></textarea>
+        <textarea id="entrada" placeholder="Digite sua pergunta, comando ou expressão matemática..."></textarea>
         <div class="botoes">
           <button id="btnEnviar">Enviar</button>
           <button id="btnEnsinar">📚 Ensinar Fênix</button>
