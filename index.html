@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>FÊNIX IA v2.0</title>
+  <link rel="stylesheet" href="fenix.css" />
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <h1>🔥 FÊNIX - IA Avançada</h1>
+
+  <div class="botoes">
+    <input type="file" id="imgInput" accept="image/*" />
+    <button onclick="extrairTexto()">📄 Extrair Texto</button>
+    <button onclick="detectarCores()">🎨 Detectar Cores</button>
+    <button onclick="exportarPDF()">🧾 Exportar PDF</button>
+    <button onclick="abrirAventura()">🧙 Modo Aventura</button>
+    <button onclick="abrirAssistenteCodigo()">💻 Assistente de Código</button>
+  </div>
+
+  <img id="preview" style="max-width: 300px; display: none; margin-top: 10px" />
+  <div id="resultadoVisual" class="painel">Resultado aparecerá aqui...</div>
+
+  <hr />
+
+  <textarea id="entrada" placeholder="Digite aqui..."></textarea>
+  <div class="botoes">
+    <button onclick="enviar()">Enviar</button>
+    <button onclick="ensinar()">📚 Ensinar Fênix</button>
+    <button onclick="ativarVoz()">🔊 Alternar Voz</button>
+  </div>
+
+  <div id="resposta"></div>
+
+  <script type="module" src="fenix.js"></script>
+</body>
+</html>
