@@ -842,7 +842,7 @@ function processarAventura(entrada) {
             resp = `🌲 Você desce à floresta com seu lobo. Um caçador ameaça o animal. Proteger o lobo, negociar ou abandonar o lobo?`;
             mostrarOpcoes(['Proteger', 'Negociar', 'Abandonar']);
           } else {
-            resp = `Por favor, escolha uma ação válida.`;
+            resp = `Por favor, escolha "Descansar", "Seguir", "Altar" ou "Descer".`;
             mostrarOpcoes(['Descansar', 'Seguir', 'Altar', 'Descer']);
           }
         } else if (aventuraEstado.local === "vila") {
@@ -988,7 +988,7 @@ function processarAventura(entrada) {
             document.getElementById('opcoesAventura').style.display = 'none';
           } else {
             resp = `Por favor, escolha uma ação válida.`;
-            mostrarOpcoes(['Procurar', 'Descansar', 'Partir', 'Portal', 'Perguntar', 'Partir', 'Ajudar', 'Ignorar', 'Pedir Informações', 'Aceitar', 'Negociar', 'Recusar']);
+            mostrarOpcoes(['Procurar', 'Descansar', 'Partir', 'Portal', 'Perguntar', 'Ajudar', 'Ignorar', 'Pedir Informações', 'Aceitar', 'Negociar', 'Recusar']);
           }
         } else if (aventuraEstado.local === "ruínas") {
           if (normal.includes("usar") || normal.includes("chave")) {
@@ -1022,7 +1022,7 @@ function processarAventura(entrada) {
             document.getElementById('opcoesAventura').style.display = 'none';
           } else {
             resp = `Por favor, escolha uma ação válida.`;
-            mostrarOpcoes(['Usar Chave', 'Procurar Outro', 'Explorar', 'Pegar Joia', 'Oferecer', 'Ignorar', 'Seguir Pinturas', 'Procurar Saídas', 'Voltar']);
+            mostrarOpcoes(['Usar Chave', 'Procurar Outro', 'Explorar', 'Pegar Joia', 'Oferecer', 'Seguir Pinturas', 'Procurar Saídas', 'Voltar']);
           }
         }
       } else if (aventuraEstado.etapa === 5) {
@@ -1050,4 +1050,144 @@ function processarAventura(entrada) {
           } else if (normal.includes("explorar") || normal.includes("recusar")) {
             resp = `🕍 O portal se fecha. Fim da aventura.`;
             aventuraEstado = null;
-            document.get
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else if (normal.includes("seguir") || normal.includes("caminho")) {
+            resp = `🏆 O caminho secreto leva ao Tesouro da Floresta! Você vence!`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else if (normal.includes("interrogar") || normal.includes("descansar")) {
+            resp = `🦹 O caçador escapa e te embosca. Fim da aventura.`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else {
+            resp = `Por favor, escolha uma ação válida.`;
+            mostrarOpcoes(['Oferecer Pele', 'Lutar', 'Persuadir', 'Nadar', 'Jangada', 'Outro Caminho', 'Entrar', 'Explorar', 'Recusar', 'Seguir Caminho', 'Interrogar', 'Descansar']);
+          }
+        } else if (aventuraEstado.local === "vila") {
+          if (normal.includes("seguir") || normal.includes("mapa")) {
+            resp = `🏆 O mapa te leva a um baú cheio de ouro! Você vence!`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else if (normal.includes("vender") || normal.includes("explorar")) {
+            resp = `🦹 Ladrões roubam o mapa. Fim da aventura.`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else if (normal.includes("investigar")) {
+            resp = `🐉 Você enfrenta o dragão e é queimado. Fim da aventura.`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else if (normal.includes("ignorar") || normal.includes("recrutar")) {
+            resp = `🏆 Você recruta aliados e derrota o dragão, ganhando seu tesouro! Você vence!`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else if (normal.includes("pegar")) {
+            resp = `💎 O cristal te teleporta para casa com riquezas! Você vence!`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else if (normal.includes("examinar") || normal.includes("destruir")) {
+            resp = `🌌 O cristal explode, destruindo a câmara. Fim da aventura.`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else if (normal.includes("atacar")) {
+            resp = `⚔️ Você e o cavaleiro derrotam os bandidos e encontram um tesouro! Você vence!`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else if (normal.includes("espionar") || normal.includes("evitar")) {
+            resp = `🦹 Os bandidos te descobrem. Fim da aventura.`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else if (normal.includes("entrar") || normal.includes("emboscar")) {
+            resp = `🏆 Você recupera o medalhão e ganha a gratidão do barqueiro! Você vence!`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else if (normal.includes("negociar")) {
+            resp = `🦹 Os ladrões te traem. Fim da aventura.`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else {
+            resp = `Por favor, escolha uma ação válida.`;
+            mostrarOpcoes(['Seguir Mapa', 'Vender', 'Explorar', 'Investigar', 'Ignorar', 'Recrutar', 'Pegar', 'Examinar', 'Destruir', 'Atacar', 'Espionar', 'Evitar', 'Entrar', 'Emboscar', 'Negociar']);
+          }
+        } else if (aventuraEstado.local === "ruínas") {
+          if (normal.includes("usar") || normal.includes("cristal")) {
+            resp = `💎 O cristal te dá poderes mágicos e você escapa rico! Você vence!`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else if (normal.includes("guardar") || normal.includes("destruir")) {
+            resp = `💎 O cristal se apaga, e as ruínas desmoronam. Fim da aventura.`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else if (normal.includes("deus") || normal.includes("tempo")) {
+            resp = `🏆 A porta se abre, revelando o Tesouro Antigo! Você vence!`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else if (normal.includes("forçar")) {
+            resp = `🪓 A porta cede, mas o teto desaba. Fim da aventura.`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else if (normal.includes("seguir") || normal.includes("mapa")) {
+            resp = `🏆 O mapa te leva ao Coração das Ruínas, cheio de ouro! Você vence!`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else if (normal.includes("explorar") || normal.includes("sair")) {
+            resp = `🕳️ Você se perde nos túneis. Fim da aventura.`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else if (normal.includes("sentar")) {
+            resp = `👑 Você se torna o Rei das Ruínas, mas preso para sempre. Fim da aventura.`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else if (normal.includes("procurar") || normal.includes("armadilhas")) {
+            resp = `🏆 Você desativa armadilhas e encontra o Trono do Poder! Você vence!`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else {
+            resp = `Por favor, escolha uma ação válida.`;
+            mostrarOpcoes(['Usar Cristal', 'Guardar', 'Destruir', 'Deus', 'Tempo', 'Forçar', 'Seguir Mapa', 'Explorar', 'Sair', 'Sentar', 'Procurar Armadilhas']);
+          }
+        }
+      }
+    } else if (aventuraEstado.aventura === 'castelo') {
+      if (aventuraEstado.etapa === 1) {
+        if (normal.includes("porta") || normal.includes("principal")) {
+          aventuraEstado.local = "salão";
+          aventuraEstado.etapa = 2;
+          resp = `🏰 Você entra no salão principal, ${aventuraEstado.heroi}. Um cavaleiro espectral surge, exigindo um duelo. Lutar, tentar conversar ou fugir?`;
+          mostrarOpcoes(['Lutar', 'Conversar', 'Fugir']);
+        } else if (normal.includes("passagem") || normal.includes("lateral")) {
+          aventuraEstado.local = "túnel";
+          aventuraEstado.etapa = 2;
+          resp = `🕳️ O túnel é escuro, mas você acha um alçapão e ouve passos atrás. Abrir o alçapão, investigar os passos ou continuar?`;
+          mostrarOpcoes(['Alçapão', 'Investigar', 'Continuar']);
+        } else if (normal.includes("janela")) {
+          aventuraEstado.local = "torre";
+          aventuraEstado.etapa = 2;
+          resp = `🪟 Você escala até a torre e encontra um livro mágico. Ler o livro, guardá-lo ou procurar outra saída?`;
+          mostrarOpcoes(['Ler', 'Guardar', 'Procurar']);
+        } else {
+          resp = `Por favor, escolha "Porta Principal", "Passagem Lateral" ou "Janela".`;
+          mostrarOpcoes(['Porta Principal', 'Passagem Lateral', 'Janela']);
+        }
+      } else if (aventuraEstado.etapa === 2) {
+        if (aventuraEstado.local === "salão") {
+          if (normal.includes("lutar")) {
+            aventuraEstado.etapa = 3;
+            resp = `⚔️ Você derrota o cavaleiro, mas ele deixa uma chave. Usar a chave na porta trancada, explorar o salão ou descansar?`;
+            mostrarOpcoes(['Usar Chave', 'Explorar', 'Descansar']);
+          } else if (normal.includes("conversar")) {
+            aventuraEstado.etapa = 3;
+            aventuraEstado.aliados.push("cavaleiro");
+            resp = `🗣️ O cavaleiro se junta a você! Ele indica uma escada secreta. Subir, procurar armadilhas ou perguntar mais?`;
+            mostrarOpcoes(['Subir', 'Procurar Armadilhas', 'Perguntar']);
+          } else if (normal.includes("fugir")) {
+            resp = `🏃 Você tropeça numa armadilha no salão. Fim da aventura.`;
+            aventuraEstado = null;
+            document.getElementById('opcoesAventura').style.display = 'none';
+          } else {
+            resp = `Por favor, escolha "Lutar", "Conversar" ou "Fugir".`;
+            mostrarOpcoes(['Lutar', 'Conversar', 'Fugir']);
+          }
+        } else if (aventuraEstado.local === "túnel") {
+          if (normal.includes("alçapão")) {
+            aventuraEstado.etapa = 3;
+            resp = `🕳️ O alçapão leva a uma câmara
