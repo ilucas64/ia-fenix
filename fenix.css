@@ -191,7 +191,18 @@ h1 {
   color: white;
 }
 
-.botoes button:hover, .mode-toggle button:hover:not(.active) {
+.botoes .mic-button.listening {
+  background: #dc2626;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0px #dc2626; }
+  50% { box-shadow: 0 0 15px #dc2626; }
+  100% { box-shadow: 0 0 0px #dc2626; }
+}
+
+.botoes button:hover:not(.active):not(.listening) {
   transform: translateY(-2px);
 }
 

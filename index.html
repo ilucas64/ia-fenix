@@ -42,10 +42,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FÊNIX IA v2.4</title>
+  <title>FÊNIX IA v2.5</title>
   <link rel="stylesheet" href="fenix.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 </head>
 <body>
   <div class="container">
@@ -86,8 +87,9 @@
         <textarea id="entrada" placeholder="Digite sua pergunta, comando ou expressão matemática..."></textarea>
         <div class="botoes">
           <button id="btnEnviar">Enviar</button>
+          <button id="btnFalar" class="mic-button">🎤 Falar</button>
           <button id="btnEnsinar">📚 Ensinar Fênix</button>
-          <button id="btnAtivarVoz">🔊 Alternar Voz</button>
+          <button id="btnModificarVoz">🔊 Modificar Voz</button>
         </div>
         <div id="resposta" role="region" aria-live="polite"></div>
       </div>
