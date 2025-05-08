@@ -12,6 +12,7 @@ let vozConfig = { pitch: 1.0, rate: 1.0 };
 let isListening = false;
 let recognition = null;
 let ultimoTextoExtraido = "";
+let isProcessing = false;
 
 // Inicializar reconhecimento de voz
 function inicializarReconhecimentoVoz() {
@@ -331,7 +332,7 @@ function detectarCores() {
   for (let i = 0; i < imageData.length; i += 4) {
     const r = Math.round(imageData[i] / 10) * 10;
     const g = Math.round(imageData[i + 1] / 10) * 10;
-    const b = Math.round(imageData[i + 2] / 10) * 10;
+    const b = Math.round(imageData[i + 2) / 10) * 10;
     const key = `${r},${g},${b}`;
     colorMap[key] = (colorMap[key] || 0) + 1;
   }
@@ -356,47 +357,151 @@ function detectarCores() {
   falar(`Cores detectadas: ${coresLista}`);
 }
 
-function reconhecerObjetos() {
+async function reconhecerObjetos() {
   console.log("Executando reconhecerObjetos...");
   if (!loadedImage) {
     showError('Nenhuma imagem carregada.');
     return;
   }
-  const objetosPossiveis = {
-    "livro": ["Livro", "Caderno", "Papel"],
-    "livros": ["Livro", "Caderno", "Papel"],
-    "caderno": ["Caderno", "Livro", "Papel"],
-    "papel": ["Papel", "Folha", "Documento"],
-    "folha": ["Folha", "Papel", "Documento"],
-    "caneta": ["Caneta", "Lápis", "Marcador"],
-    "lápis": ["Lápis", "Caneta", "Marcador"],
-    "mesa": ["Mesa", "Cadeira", "Escrivaninha"],
-    "cadeira": ["Cadeira", "Mesa", "Banco"],
-    "escrivaninha": ["Escrivaninha", "Mesa", "Cadeira"],
-    "árvore": ["Árvore", "Planta", "Folha"],
-    "planta": ["Planta", "Árvore", "Flor"],
-    "computador": ["Computador", "Monitor", "Teclado"],
-    "monitor": ["Monitor", "Computador", "Tela"],
-    "carro": ["Carro", "Moto", "Bicicleta"],
-    "moto": ["Moto", "Carro", "Bicicleta"],
-    default: ["Mesa", "Objeto genérico"]
-  };
-  let objetos = objetosPossiveis.default;
-  if (ultimoTextoExtraido && ultimoTextoExtraido !== "Nenhum texto encontrado.") {
-    const textoNormalizado = ultimoTextoExtraido.toLowerCase();
-    for (const [key, value] of Object.entries(objetosPossiveis)) {
-      if (textoNormalizado.includes(key)) {
-        objetos = value;
-        break;
+  if (isProcessing) {
+    showError('Processamento em andamento, por favor aguarde...');
+    return;
+  }
+
+  isProcessing = true;
+  disableButtons();
+  const resultadoVisual = document.getElementById('resultadoVisual');
+  resultadoVisual.textContent = 'Reconhecendo objetos...';
+
+  try {
+    const img = new Image();
+    img.src = URL.createObjectURL(loadedImage);
+    await new Promise((resolve) => {
+      img.onload = resolve;
+      img.onerror = () => {
+        throw new Error('Falha ao carregar a imagem.');
+      };
+    });
+
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0);
+
+    // Pré-processamento: Converter para escala de cinza
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const gray = 0.2989 * r + 0.5870 * g + 0.1140 * b; // Fórmula de luminância
+      data[i] = gray;
+      data[i + 1] = gray;
+      data[i + 2] = gray;
+    }
+    ctx.putImageData(imageData, 0, 0);
+
+    // Binarização: Aplicar threshold pra destacar bordas
+    const threshold = 128;
+    const binaryData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const binary = binaryData.data;
+    for (let i = 0; i < binary.length; i += 4) {
+      const gray = binary[i];
+      const value = gray > threshold ? 255 : 0;
+      binary[i] = value;
+      binary[i + 1] = value;
+      binary[i + 2] = value;
+    }
+    ctx.putImageData(binaryData, 0, 0);
+
+    // Detecção de bordas simples (Sobel-like)
+    const edgeData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const edge = new Uint8ClampedArray(canvas.width * canvas.height);
+    for (let y = 1; y < canvas.height - 1; y++) {
+      for (let x = 1; x < canvas.width - 1; x++) {
+        const i = (y * canvas.width + x) * 4;
+        const gx = -binary[i - 4] + binary[i + 4]; // Diferença horizontal
+        const gy = -binary[i - canvas.width * 4] + binary[i + canvas.width * 4]; // Diferença vertical
+        const magnitude = Math.sqrt(gx * gx + gy * gy);
+        edge[y * canvas.width + x] = magnitude > 50 ? 255 : 0;
       }
     }
-  } else {
-    showError('Nenhum texto extraído. Clique em "Extrair Texto" primeiro para melhores resultados.');
-    // Usar objetos genéricos como fallback
+
+    // Encontrar contornos
+    const contours = [];
+    const visited = new Set();
+    const minArea = 500; // Filtra contornos pequenos
+
+    for (let y = 0; y < canvas.height; y++) {
+      for (let x = 0; x < canvas.width; x++) {
+        const idx = y * canvas.width + x;
+        if (edge[idx] === 255 && !visited.has(idx)) {
+          const contour = [];
+          const stack = [[x, y]];
+          let minX = x, maxX = x, minY = y, maxY = y;
+          let area = 0;
+
+          while (stack.length > 0) {
+            const [cx, cy] = stack.pop();
+            const cidx = cy * canvas.width + cx;
+            if (cx < 0 || cx >= canvas.width || cy < 0 || cy >= canvas.height || visited.has(cidx) || edge[cidx] !== 255) {
+              continue;
+            }
+
+            visited.add(cidx);
+            contour.push([cx, cy]);
+            area++;
+            minX = Math.min(minX, cx);
+            maxX = Math.max(maxX, cx);
+            minY = Math.min(minY, cy);
+            maxY = Math.max(maxY, cy);
+
+            stack.push([cx + 1, cy]);
+            stack.push([cx - 1, cy]);
+            stack.push([cx, cy + 1]);
+            stack.push([cx, cy - 1]);
+          }
+
+          if (area > minArea) {
+            let isOverlap = false;
+            for (let existing of contours) {
+              const overlapX = maxX > existing.boundingBox.minX && minX < existing.boundingBox.maxX;
+              const overlapY = maxY > existing.boundingBox.minY && minY < existing.boundingBox.maxY;
+              if (overlapX && overlapY && Math.abs(area - existing.area) < 200) {
+                isOverlap = true;
+                break;
+              }
+            }
+            if (!isOverlap) {
+              contours.push({ points: contour, area, boundingBox: { minX, maxX, minY, maxY } });
+            }
+          }
+        }
+      }
+    }
+
+    const objetosDetectados = [];
+    if (contours.length > 0) {
+      objetosDetectados.push(`${contours.length} objeto${contours.length > 1 ? 's' : ''}`);
+    }
+
+    if (objetosDetectados.length === 0) {
+      resultadoVisual.textContent = 'Nenhum objeto reconhecido.';
+      falar('Nenhum objeto reconhecido.');
+    } else {
+      const texto = `Objetos detectados em "${loadedImage.name}": ${objetosDetectados.join(', ')}.`;
+      resultadoVisual.textContent = texto;
+      falar(texto);
+    }
+  } catch (error) {
+    console.error('Erro ao reconhecer objetos:', error);
+    showError('Erro ao reconhecer objetos: ' + error.message);
+  } finally {
+    isProcessing = false;
+    enableButtons();
   }
-  const texto = `Objetos em "${loadedImage.name}": ${objetos.join(", ")}`;
-  document.getElementById('resultadoVisual').textContent = texto;
-  falar(texto);
 }
 
 function exportarPDF() {
