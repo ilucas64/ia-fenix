@@ -27,17 +27,24 @@ function inicializarReconhecimentoVoz() {
   recognition = new SpeechRecognition();
   recognition.lang = "pt-BR";
   recognition.interimResults = false;
+  recognition.continuous = true;
+  recognition.maxAlternatives = 1;
   recognition.onresult = (event) => {
-    console.log("Resultado de voz:", event.results);
-    const texto = event.results[0][0].transcript;
+    console.log("Resultado de voz recebido:", event.results);
+    const texto = event.results[event.results.length - 1][0].transcript;
+    console.log("Texto transcrito:", texto);
     const entrada = document.getElementById('entrada');
     if (entrada) {
       entrada.value = texto;
-      console.log("Texto transcrito:", texto);
-      // Garantir que chatInteraction esteja visível
-      if (!chatMode) toggleChatMode();
+      if (!chatMode) {
+        console.log("Ativando modo conversa automaticamente.");
+        toggleChatMode();
+      }
       document.getElementById('chatInteraction').style.display = 'flex';
       enviar();
+    } else {
+      console.error("Elemento 'entrada' não encontrado.");
+      showError("Erro interno: textarea não encontrado.");
     }
   };
   recognition.onend = () => {
@@ -51,7 +58,10 @@ function inicializarReconhecimentoVoz() {
   };
   recognition.onerror = (event) => {
     console.error("Erro no reconhecimento:", event.error);
-    showError(`Erro na voz: ${event.error}`);
+    let msg = `Erro na voz: ${event.error}`;
+    if (event.error === 'no-speech') msg = "Nenhum som detectado. Fale mais alto.";
+    if (event.error === 'not-allowed') msg = "Permissão de microfone negada. Ative no navegador.";
+    showError(msg);
     isListening = false;
     const btnFalar = document.getElementById('btnFalar');
     if (btnFalar) {
@@ -291,7 +301,6 @@ async function extrairTexto() {
     const resultadoVisual = document.getElementById('resultadoVisual');
     resultadoVisual.textContent = 'Extraindo texto...';
     const preview = document.getElementById('preview');
-    // Pré-processar imagem para melhorar OCR
     const processedImage = preprocessarImagem(preview);
     const { data: { text } } = await Tesseract.recognize(processedImage, 'por', {
       logger: m => console.log("Progresso Tesseract:", m)
@@ -319,7 +328,6 @@ function detectarCores() {
   canvas.height = preview.height;
   ctx.drawImage(preview, 0, 0);
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-  // Mapa de cores para contagem
   const colorMap = {};
   for (let i = 0; i < imageData.length; i += 4) {
     const r = Math.round(imageData[i] / 10) * 10;
@@ -328,15 +336,25 @@ function detectarCores() {
     const key = `${r},${g},${b}`;
     colorMap[key] = (colorMap[key] || 0) + 1;
   }
-  // Ordenar por frequência
   const cores = Object.entries(colorMap)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
     .map(([key]) => `rgb(${key})`);
   const coresLista = cores.length > 0 ? cores.join(", ") : "Nenhuma cor dominante.";
-  const texto = `Cores em "${loadedImage.name}": ${coresLista}`;
-  document.getElementById('resultadoVisual').textContent = texto;
-  falar(texto);
+  const resultadoVisual = document.getElementById('resultadoVisual');
+  resultadoVisual.innerHTML = `Cores em "${loadedImage.name}":<br>`;
+  cores.forEach(cor => {
+    const div = document.createElement('div');
+    div.style.display = 'inline-block';
+    div.style.width = '20px';
+    div.style.height = '20px';
+    div.style.backgroundColor = cor;
+    div.style.margin = '5px';
+    div.style.border = '1px solid #333';
+    resultadoVisual.appendChild(div);
+  });
+  resultadoVisual.innerHTML += `<br>${coresLista}`;
+  falar(`Cores detectadas: ${coresLista}`);
 }
 
 function reconhecerObjetos() {
@@ -345,18 +363,29 @@ function reconhecerObjetos() {
     showError('Nenhuma imagem carregada.');
     return;
   }
-  // Simulação inteligente baseada no texto extraído
+  if (!ultimoTextoExtraido) {
+    showError('Nenhum texto extraído. Clique em "Extrair Texto" primeiro.');
+    return;
+  }
   const objetosPossiveis = {
     "livro": ["Livro", "Caderno", "Papel"],
+    "livros": ["Livro", "Caderno", "Papel"],
+    "caderno": ["Caderno", "Livro", "Papel"],
+    "papel": ["Papel", "Folha", "Documento"],
     "caneta": ["Caneta", "Lápis", "Marcador"],
+    "lápis": ["Lápis", "Caneta", "Marcador"],
     "mesa": ["Mesa", "Cadeira", "Escrivaninha"],
+    "cadeira": ["Cadeira", "Mesa", "Banco"],
     "árvore": ["Árvore", "Planta", "Folha"],
+    "planta": ["Planta", "Árvore", "Flor"],
     "carro": ["Carro", "Moto", "Bicicleta"],
+    "moto": ["Moto", "Carro", "Bicicleta"],
     default: ["Objeto desconhecido"]
   };
   let objetos = objetosPossiveis.default;
+  const textoNormalizado = ultimoTextoExtraido.toLowerCase();
   for (const [key, value] of Object.entries(objetosPossiveis)) {
-    if (ultimoTextoExtraido.toLowerCase().includes(key)) {
+    if (textoNormalizado.includes(key)) {
       objetos = value;
       break;
     }
@@ -449,6 +478,7 @@ function toggleMic() {
     return;
   }
   if (!chatMode) {
+    console.log("Ativando modo conversa via toggleMic.");
     toggleChatMode();
   }
   const btnFalar = document.getElementById('btnFalar');
@@ -462,7 +492,7 @@ function toggleMic() {
       }
       console.log("Microfone iniciado.");
     } catch (e) {
-      showError("Erro ao iniciar microfone.");
+      showError("Erro ao iniciar microfone. Verifique permissões.");
       console.error("Erro ao iniciar:", e);
     }
   } else {
