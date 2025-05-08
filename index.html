@@ -40,62 +40,41 @@
         </script><!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FÊNIX IA v2.5</title>
-  <link rel="stylesheet" href="fenix.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fênix IA</title>
+  <link rel="stylesheet" href="fenix.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1>🔥 FÊNIX - IA Avançada</h1>
-    </header>
-    <main>
-      <section class="image-section" aria-label="Ferramentas de imagem">
-        <div id="dropArea" class="drop-area">
-          <input type="file" id="imgInput" accept="image/*" aria-label="Selecionar imagem" />
-          <p>Arraste e solte uma imagem aqui ou clique para selecionar</p>
-          <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-          </svg>
-        </div>
-        <div class="controls">
-          <button id="btnExtrairTexto">📄 Extrair Texto</button>
-          <button id="btnDetectarCores">🎨 Detectar Cores</button>
-          <button id="btnReconhecerObjetos">🔍 Reconhecer Objetos</button>
-          <button id="btnExportarPDF">🧾 Exportar PDF</button>
-          <button id="btnResetarArquivo">🔄 Novo Arquivo</button>
-        </div>
-      </section>
-
-      <img id="preview" style="display: none; max-width: 100%; margin-top: 20px;" alt="Pré-visualização da imagem" />
-      <div id="resultadoVisual" class="painel" role="region" aria-live="polite">Sistema pronto! Tente arrastar uma imagem ou clicar nos botões.</div>
-      <div id="opcoesAventura" class="opcoes-aventura" style="display: none;"></div>
-
-      <hr />
-
-      <section class="mode-toggle">
-        <button id="toggleChatMode">Ativar Modo Conversa</button>
-        <button id="toggleMathMode">🧮 Modo Matemático</button>
-        <button id="btnAventura">🧙 Modo Aventura</button>
-      </section>
-
-      <div id="chatInteraction" class="interaction" style="display: none;">
-        <textarea id="entrada" placeholder="Digite sua pergunta, comando ou expressão matemática..."></textarea>
-        <div class="botoes">
-          <button id="btnEnviar">Enviar</button>
-          <button id="btnFalar" class="mic-button">🎤 Falar</button>
-          <button id="btnEnsinar">📚 Ensinar Fênix</button>
-          <button id="btnModificarVoz">🔊 Modificar Voz</button>
-        </div>
-        <div id="resposta" role="region" aria-live="polite"></div>
-      </div>
-    </main>
+    <h1>Fênix IA</h1>
+    <div id="dropArea" class="drop-area">
+      <p>Arraste e solte uma imagem aqui ou clique para selecionar</p>
+      <input type="file" id="imgInput" accept="image/*">
+      <img id="preview" alt="Prévia da imagem" style="display: none;">
+    </div>
+    <div id="resultadoVisual">O texto extraído aparecerá aqui...</div>
+    <div id="chatInteraction" style="display: none;">
+      <textarea id="entrada" placeholder="Digite sua pergunta ou comando..."></textarea>
+      <div id="resposta"></div>
+    </div>
+    <div id="opcoesAventura" style="display: none;"></div>
+    <div class="button-group">
+      <button id="btnExtrairTexto">Extrair Texto</button>
+      <button id="btnDetectarCores">Detectar Cores</button>
+      <button id="btnReconhecerObjetos">Reconhecer Objetos</button>
+      <button id="btnExportarPDF">Exportar PDF</button>
+      <button id="btnResetarArquivo">Resetar Arquivo</button>
+      <button id="toggleChatMode">Ativar Modo Conversa</button>
+      <button id="toggleMathMode">Ativar Modo Matemático</button>
+      <button id="btnAventura">Iniciar Aventura</button>
+      <button id="btnFalar">🎤 Falar</button>
+      <button id="btnEnsinar">Ensinar Fênix</button>
+      <button id="btnModificarVoz">Modificar Voz</button>
+    </div>
   </div>
-
   <script type="module" src="fenix.js"></script>
 </body>
 </html>
