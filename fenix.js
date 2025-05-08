@@ -1,9 +1,14 @@
 console.log("Iniciando fenix.js...");
 
+let memoria = {};
 let chatHistory = [];
+let mathHistory = [];
+let usuario = { nome: "amigo" };
 let loadedImage = null;
 let chatMode = false;
+let mathMode = false;
 let aventuraEstado = null;
+let vozConfig = { pitch: 1.0, rate: 1.0 };
 let isListening = false;
 let recognition = null;
 
@@ -22,7 +27,7 @@ function inicializarReconhecimentoVoz() {
   recognition.lang = "pt-BR";
   recognition.interimResults = false;
   recognition.onresult = (event) => {
-    console.log("Resultado de voz recebido:", event.results);
+    console.log("Resultado de voz:", event.results);
     const texto = event.results[0][0].transcript;
     const entrada = document.getElementById('entrada');
     if (entrada) {
@@ -32,7 +37,7 @@ function inicializarReconhecimentoVoz() {
     }
   };
   recognition.onend = () => {
-    console.log("Reconhecimento de voz finalizado.");
+    console.log("Reconhecimento finalizado.");
     isListening = false;
     const btnFalar = document.getElementById('btnFalar');
     if (btnFalar) {
@@ -51,6 +56,62 @@ function inicializarReconhecimentoVoz() {
     }
   };
   return true;
+}
+
+// Carregar JSON
+async function carregarJSON(caminho) {
+  console.log(`Carregando ${caminho}...`);
+  try {
+    const res = await fetch(caminho);
+    if (!res.ok) throw new Error(`Erro ao carregar ${caminho}`);
+    return await res.json();
+  } catch (e) {
+    console.error("Erro ao carregar JSON:", e);
+    showError(`Erro ao carregar ${caminho}.`);
+    return {};
+  }
+}
+
+// Salvar no localStorage
+function salvarLocal(nome, dados) {
+  console.log(`Salvando ${nome}...`);
+  try {
+    localStorage.setItem(nome, JSON.stringify(dados));
+  } catch (e) {
+    console.error(`Erro ao salvar ${nome}:`, e);
+  }
+}
+
+// Carregar dados
+async function carregarTudo() {
+  console.log("Carregando dados...");
+  memoria = await carregarJSON("dados/memoria.json") || {};
+  usuario = await carregarJSON("dados/usuario.json") || { nome: "amigo" };
+  chatHistory = JSON.parse(localStorage.getItem("fenix_chat_history")) || [];
+  mathHistory = JSON.parse(localStorage.getItem("fenix_math_history")) || [];
+  vozConfig = JSON.parse(localStorage.getItem("fenix_voz_config")) || { pitch: 1.0, rate: 1.0 };
+  console.log("Dados carregados:", { memoria, usuario, chatHistory, mathHistory, vozConfig });
+}
+
+// Falar
+function falar(texto) {
+  console.log("Falando:", texto);
+  try {
+    window.speechSynthesis.cancel();
+    const voz = new SpeechSynthesisUtterance(texto);
+    voz.lang = "pt-BR";
+    voz.rate = vozConfig.rate;
+    voz.pitch = vozConfig.pitch;
+    window.speechSynthesis.speak(voz);
+  } catch (e) {
+    console.error("Erro na fala:", e);
+    showError("Erro na síntese de voz.");
+  }
+}
+
+// Sanitizar entrada
+function sanitizarEntrada(texto) {
+  return texto.replace(/[<>{}]/g, "").trim();
 }
 
 // Mostrar erro
@@ -83,11 +144,16 @@ function configurarEventos() {
 
   const botoes = [
     { id: 'btnExtrairTexto', handler: extrairTexto },
+    { id: 'btnDetectarCores', handler: detectarCores },
+    { id: 'btnReconhecerObjetos', handler: reconhecerObjetos },
     { id: 'btnExportarPDF', handler: exportarPDF },
     { id: 'btnResetarArquivo', handler: resetarArquivo },
     { id: 'toggleChatMode', handler: toggleChatMode },
+    { id: 'toggleMathMode', handler: toggleMathMode },
     { id: 'btnAventura', handler: abrirAventura },
-    { id: 'btnFalar', handler: toggleMic }
+    { id: 'btnFalar', handler: toggleMic },
+    { id: 'btnEnsinar', handler: ensinar },
+    { id: 'btnModificarVoz', handler: modificarVoz }
   ];
   botoes.forEach(({ id, handler }) => {
     const btn = document.getElementById(id);
@@ -157,7 +223,7 @@ function configurarEventos() {
 document.addEventListener('DOMContentLoaded', () => {
   console.log("DOM carregado, iniciando...");
   if (configurarEventos() && inicializarReconhecimentoVoz()) {
-    console.log("Sistema pronto!");
+    carregarTudo();
     document.getElementById('resultadoVisual').textContent = 'Sistema pronto! Tente arrastar uma imagem ou clicar nos botões.';
   } else {
     showError('Erro ao inicializar. Veja o console (F12).');
@@ -166,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Habilitar/desabilitar botões
 function enableButtons() {
-  ['btnExtrairTexto', 'btnExportarPDF', 'btnResetarArquivo'].forEach(id => {
+  ['btnExtrairTexto', 'btnDetectarCores', 'btnReconhecerObjetos', 'btnExportarPDF', 'btnResetarArquivo'].forEach(id => {
     const btn = document.getElementById(id);
     if (btn) {
       btn.disabled = false;
@@ -175,7 +241,7 @@ function enableButtons() {
   });
 }
 function disableButtons() {
-  ['btnExtrairTexto', 'btnExportarPDF', 'btnResetarArquivo'].forEach(id => {
+  ['btnExtrairTexto', 'btnDetectarCores', 'btnReconhecerObjetos', 'btnExportarPDF', 'btnResetarArquivo'].forEach(id => {
     const btn = document.getElementById(id);
     if (btn) {
       btn.disabled = true;
@@ -193,9 +259,28 @@ function extrairTexto() {
   }
   const texto = `Texto extraído de "${loadedImage.name}": Lorem ipsum.`;
   document.getElementById('resultadoVisual').textContent = texto;
+  falar(texto);
 }
-
-// Exportar PDF
+function detectarCores() {
+  console.log("Executando detectarCores...");
+  if (!loadedImage) {
+    showError('Nenhuma imagem carregada.');
+    return;
+  }
+  const cores = `Cores em "${loadedImage.name}": Vermelho, Azul, Verde.`;
+  document.getElementById('resultadoVisual').textContent = cores;
+  falar(cores);
+}
+function reconhecerObjetos() {
+  console.log("Executando reconhecerObjetos...");
+  if (!loadedImage) {
+    showError('Nenhuma imagem carregada.');
+    return;
+  }
+  const objetos = `Objetos em "${loadedImage.name}": Mesa, Cadeira, Livro.`;
+  document.getElementById('resultadoVisual').textContent = objetos;
+  falar(objetos);
+}
 function exportarPDF() {
   console.log("Executando exportarPDF...");
   if (!loadedImage) {
@@ -209,11 +294,13 @@ function exportarPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   doc.text(`Relatório: ${loadedImage.name}`, 10, 10);
+  doc.text("Texto: Lorem ipsum.", 10, 20);
+  doc.text("Cores: Vermelho, Azul, Verde.", 10, 30);
+  doc.text("Objetos: Mesa, Cadeira, Livro.", 10, 40);
   doc.save(`relatorio_${loadedImage.name}.pdf`);
   document.getElementById('resultadoVisual').textContent = `PDF gerado!`;
+  falar("PDF gerado!");
 }
-
-// Resetar arquivo
 function resetarArquivo() {
   console.log("Executando resetarArquivo...");
   const imgInput = document.getElementById('imgInput');
@@ -229,12 +316,15 @@ function resetarArquivo() {
   disableButtons();
 }
 
-// Modo conversa
+// Modos
 function toggleChatMode() {
   console.log("Toggling modo conversa...");
   chatMode = !chatMode;
+  mathMode = false;
   const btnChat = document.getElementById('toggleChatMode');
+  const btnMath = document.getElementById('toggleMathMode');
   if (btnChat) btnChat.textContent = chatMode ? 'Desativar Conversa' : 'Ativar Conversa';
+  if (btnMath) btnMath.textContent = 'Ativar Matemático';
   document.getElementById('chatInteraction').style.display = chatMode ? 'flex' : 'none';
   document.getElementById('opcoesAventura').style.display = 'none';
   document.getElementById('resultadoVisual').style.display = chatMode ? 'none' : 'block';
@@ -242,6 +332,24 @@ function toggleChatMode() {
   if (resposta) {
     resposta.textContent = chatMode
       ? (chatHistory.length ? chatHistory.map(e => `Você: ${e.user}\nFênix: ${e.ai}`).join('\n') : 'Oi! Pergunte algo!')
+      : '';
+  }
+}
+function toggleMathMode() {
+  console.log("Toggling modo matemático...");
+  mathMode = !mathMode;
+  chatMode = false;
+  const btnMath = document.getElementById('toggleMathMode');
+  const btnChat = document.getElementById('toggleChatMode');
+  if (btnMath) btnMath.textContent = mathMode ? 'Desativar Matemático' : 'Ativar Matemático';
+  if (btnChat) btnChat.textContent = 'Ativar Conversa';
+  document.getElementById('chatInteraction').style.display = mathMode ? 'flex' : 'none';
+  document.getElementById('opcoesAventura').style.display = 'none';
+  document.getElementById('resultadoVisual').style.display = mathMode ? 'none' : 'block';
+  const resposta = document.getElementById('resposta');
+  if (resposta) {
+    resposta.textContent = mathMode
+      ? (mathHistory.length ? mathHistory.map(e => `Você: ${e.user}\nFênix: ${e.ai}`).join('\n') : 'Digite uma expressão (ex.: 2+2)')
       : '';
   }
 }
@@ -278,6 +386,49 @@ function toggleMic() {
   }
 }
 
+// Modificar voz
+function modificarVoz() {
+  console.log("Modificando voz...");
+  const pitch = prompt("Tom (0.5 a 1.5):", vozConfig.pitch);
+  const rate = prompt("Velocidade (0.8 a 1.2):", vozConfig.rate);
+  vozConfig.pitch = parseFloat(pitch) || 1.0;
+  vozConfig.rate = parseFloat(rate) || 1.0;
+  if (vozConfig.pitch < 0.5 || vozConfig.pitch > 1.5) vozConfig.pitch = 1.0;
+  if (vozConfig.rate < 0.8 || vozConfig.rate > 1.2) vozConfig.rate = 1.0;
+  salvarLocal("fenix_voz_config", vozConfig);
+  document.getElementById('resultadoVisual').textContent = `Voz: Tom ${vozConfig.pitch}, Velocidade ${vozConfig.rate}`;
+  falar("Voz modificada!");
+}
+
+// Ensinar
+function ensinar() {
+  console.log("Executando ensinar...");
+  const pergunta = sanitizarEntrada(prompt("Digite a pergunta:"));
+  if (!pergunta) {
+    showError("Pergunta inválida.");
+    return;
+  }
+  const resposta = sanitizarEntrada(prompt("Digite a resposta:"));
+  if (!resposta) {
+    showError("Resposta inválida.");
+    return;
+  }
+  memoria[pergunta.toLowerCase()] = resposta;
+  salvarLocal("fenix_memoria", memoria);
+  document.getElementById('resultadoVisual').textContent = `Aprendi: "${pergunta}" → "${resposta}"`;
+  falar("Aprendi algo novo!");
+}
+
+// Processar pergunta
+function processarPergunta(pergunta) {
+  console.log("Processando pergunta:", pergunta);
+  const texto = pergunta.toLowerCase().trim();
+  if (texto.includes("oi")) return `Oi, ${usuario.nome}! Como posso ajudar?`;
+  if (texto.includes("capital do brasil")) return "A capital do Brasil é Brasília.";
+  if (memoria[texto]) return memoria[texto];
+  return "Não sei responder. Use 'Ensinar Fênix' pra me ensinar.";
+}
+
 // Enviar
 function enviar() {
   console.log("Executando enviar...");
@@ -287,23 +438,42 @@ function enviar() {
     showError("Elementos de entrada não encontrados.");
     return;
   }
-  const texto = entrada.value.trim();
+  const texto = sanitizarEntrada(entrada.value);
   if (!texto) {
     showError("Digite algo.");
     return;
   }
   entrada.value = "";
 
-  if (chatMode) {
-    const resp = texto.includes("oi") ? "Oi! Como posso ajudar?" : "Não sei responder isso.";
+  if (mathMode) {
+    if (typeof math === 'undefined') {
+      showError("Math.js não carregado.");
+      return;
+    }
+    try {
+      const resultado = math.evaluate(texto);
+      const resp = `Resultado: ${resultado}`;
+      mathHistory.push({ user: texto, ai: resp });
+      if (mathHistory.length > 5) mathHistory.shift();
+      salvarLocal("fenix_math_history", mathHistory);
+      resposta.textContent = mathHistory.map(e => `Você: ${e.user}\nFênix: ${e.ai}`).join('\n');
+      falar(resp);
+    } catch (e) {
+      showError(`Erro ao calcular: ${e.message}`);
+    }
+  } else if (chatMode) {
+    const resp = processarPergunta(texto);
     chatHistory.push({ user: texto, ai: resp });
     if (chatHistory.length > 5) chatHistory.shift();
+    salvarLocal("fenix_chat_history", chatHistory);
     resposta.textContent = chatHistory.map(e => `Você: ${e.user}\nFênix: ${e.ai}`).join('\n');
+    falar(resp);
   } else if (aventuraEstado) {
     const resp = processarAventura(texto);
     document.getElementById('resultadoVisual').textContent = resp;
+    falar(resp);
   } else {
-    showError("Ative um modo (Conversa ou Aventura).");
+    showError("Ative um modo (Conversa, Matemático ou Aventura).");
   }
 }
 
@@ -329,12 +499,14 @@ function abrirAventura() {
 
 function iniciarAventura(aventuraId) {
   console.log("Iniciando aventura:", aventuraId);
-  const nome = prompt("Nome do herói:") || "Herói";
+  const nome = sanitizarEntrada(prompt("Nome do herói:") || "Herói");
   aventuraEstado = { heroi: nome, aventura: aventuraId, etapa: 1 };
   const resultadoVisual = document.getElementById('resultadoVisual');
   if (resultadoVisual) {
     resultadoVisual.textContent = `🌲 Você, ${nome}, está numa Floresta. Escolha: Norte, Sul.`;
     mostrarOpcoes(['Norte', 'Sul']);
+    salvarLocal("fenix_aventura", aventuraEstado);
+    falar(`Você, ${nome}, está numa Floresta. Escolha: Norte, Sul.`);
   }
 }
 
@@ -381,5 +553,6 @@ function processarAventura(entrada) {
   }
   const resultadoVisual = document.getElementById('resultadoVisual');
   if (resultadoVisual) resultadoVisual.textContent = resp;
+  salvarLocal("fenix_aventura", aventuraEstado);
   return resp;
 }

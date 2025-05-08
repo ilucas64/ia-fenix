@@ -44,6 +44,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fênix IA</title>
   <link rel="stylesheet" href="fenix.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
@@ -56,17 +57,22 @@
     </div>
     <div id="resultadoVisual">O texto extraído aparecerá aqui...</div>
     <div id="chatInteraction" style="display: none;">
-      <textarea id="entrada" placeholder="Digite sua pergunta..."></textarea>
+      <textarea id="entrada" placeholder="Digite sua pergunta ou comando..."></textarea>
       <div id="resposta"></div>
     </div>
     <div id="opcoesAventura" style="display: none;"></div>
     <div class="button-group">
       <button id="btnExtrairTexto">Extrair Texto</button>
+      <button id="btnDetectarCores">Detectar Cores</button>
+      <button id="btnReconhecerObjetos">Reconhecer Objetos</button>
       <button id="btnExportarPDF">Exportar PDF</button>
       <button id="btnResetarArquivo">Resetar</button>
       <button id="toggleChatMode">Ativar Conversa</button>
+      <button id="toggleMathMode">Ativar Matemático</button>
       <button id="btnAventura">Iniciar Aventura</button>
       <button id="btnFalar">🎤 Falar</button>
+      <button id="btnEnsinar">Ensinar Fênix</button>
+      <button id="btnModificarVoz">Modificar Voz</button>
     </div>
   </div>
   <script type="module" src="fenix.js"></script>
