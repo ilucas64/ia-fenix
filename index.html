@@ -42,7 +42,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FÊNIX IA v2.2</title>
+  <title>FÊNIX IA v2.4</title>
   <link rel="stylesheet" href="fenix.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js"></script>
@@ -64,11 +64,11 @@
           </svg>
         </div>
         <div class="controls">
-          <button onclick="extrairTexto()">📄 Extrair Texto</button>
-          <button onclick="detectarCores()">🎨 Detectar Cores</button>
-          <button onclick="reconhecerObjetos()">🔍 Reconhecer Objetos</button>
-          <button onclick="exportarPDF()">🧾 Exportar PDF</button>
-          <button onclick="resetarArquivo()">🔄 Novo Arquivo</button>
+          <button id="btnExtrairTexto">📄 Extrair Texto</button>
+          <button id="btnDetectarCores">🎨 Detectar Cores</button>
+          <button id="btnReconhecerObjetos">🔍 Reconhecer Objetos</button>
+          <button id="btnExportarPDF">🧾 Exportar PDF</button>
+          <button id="btnResetarArquivo">🔄 Novo Arquivo</button>
         </div>
       </section>
 
@@ -78,24 +78,24 @@
       <hr />
 
       <section class="mode-toggle">
-        <button id="toggleMathMode" onclick="toggleMathMode()">Ativar Modo Matemático</button>
-        <button id="toggleChatMode" onclick="toggleChatMode()">Ativar Modo Conversa</button>
-        <button onclick="abrirAventura()">🧙 Modo Aventura</button>
-        <button onclick="abrirAssistenteCodigo()">💻 Assistente de Código</button>
+        <button id="toggleMathMode">Ativar Modo Matemático</button>
+        <button id="toggleChatMode">Ativar Modo Conversa</button>
+        <button id="btnAventura">🧙 Modo Aventura</button>
+        <button id="btnAssistenteCodigo">💻 Assistente de Código</button>
       </section>
 
       <div id="mathInteraction" class="interaction" style="display: none;">
         <textarea id="mathQuestion" placeholder="Digite sua pergunta matemática..."></textarea>
-        <button onclick="responderMath()">Enviar Pergunta</button>
+        <button id="btnEnviarMath">Enviar Pergunta</button>
         <div id="mathAnswer">A resposta aparecerá aqui...</div>
       </div>
 
       <div id="chatInteraction" class="interaction" style="display: none;">
         <textarea id="entrada" placeholder="Digite sua pergunta ou comando..."></textarea>
         <div class="botoes">
-          <button onclick="enviar()">Enviar</button>
-          <button onclick="ensinar()">📚 Ensinar Fênix</button>
-          <button onclick="ativarVoz()">🔊 Alternar Voz</button>
+          <button id="btnEnviar">Enviar</button>
+          <button id="btnEnsinar">📚 Ensinar Fênix</button>
+          <button id="btnAtivarVoz">🔊 Alternar Voz</button>
         </div>
         <div id="resposta" role="region" aria-live="polite"></div>
       </div>
