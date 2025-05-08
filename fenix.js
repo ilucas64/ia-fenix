@@ -145,7 +145,6 @@ function preprocessarImagem(img) {
   canvas.width = img.width;
   canvas.height = img.height;
   ctx.drawImage(img, 0, 0);
-  // Aumentar contraste
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
   for (let i = 0; i < data.length; i += 4) {
@@ -363,34 +362,39 @@ function reconhecerObjetos() {
     showError('Nenhuma imagem carregada.');
     return;
   }
-  if (!ultimoTextoExtraido) {
-    showError('Nenhum texto extraído. Clique em "Extrair Texto" primeiro.');
-    return;
-  }
   const objetosPossiveis = {
     "livro": ["Livro", "Caderno", "Papel"],
     "livros": ["Livro", "Caderno", "Papel"],
     "caderno": ["Caderno", "Livro", "Papel"],
     "papel": ["Papel", "Folha", "Documento"],
+    "folha": ["Folha", "Papel", "Documento"],
     "caneta": ["Caneta", "Lápis", "Marcador"],
     "lápis": ["Lápis", "Caneta", "Marcador"],
     "mesa": ["Mesa", "Cadeira", "Escrivaninha"],
     "cadeira": ["Cadeira", "Mesa", "Banco"],
+    "escrivaninha": ["Escrivaninha", "Mesa", "Cadeira"],
     "árvore": ["Árvore", "Planta", "Folha"],
     "planta": ["Planta", "Árvore", "Flor"],
+    "computador": ["Computador", "Monitor", "Teclado"],
+    "monitor": ["Monitor", "Computador", "Tela"],
     "carro": ["Carro", "Moto", "Bicicleta"],
     "moto": ["Moto", "Carro", "Bicicleta"],
-    default: ["Objeto desconhecido"]
+    default: ["Mesa", "Objeto genérico"]
   };
   let objetos = objetosPossiveis.default;
-  const textoNormalizado = ultimoTextoExtraido.toLowerCase();
-  for (const [key, value] of Object.entries(objetosPossiveis)) {
-    if (textoNormalizado.includes(key)) {
-      objetos = value;
-      break;
+  if (ultimoTextoExtraido && ultimoTextoExtraido !== "Nenhum texto encontrado.") {
+    const textoNormalizado = ultimoTextoExtraido.toLowerCase();
+    for (const [key, value] of Object.entries(objetosPossiveis)) {
+      if (textoNormalizado.includes(key)) {
+        objetos = value;
+        break;
+      }
     }
+  } else {
+    showError('Nenhum texto extraído. Clique em "Extrair Texto" primeiro para melhores resultados.');
+    // Usar objetos genéricos como fallback
   }
-  const texto = `Objetos em "${loadedImage.name}": ${objetos.join(", ") || "Nenhum objeto detectado."}`;
+  const texto = `Objetos em "${loadedImage.name}": ${objetos.join(", ")}`;
   document.getElementById('resultadoVisual').textContent = texto;
   falar(texto);
 }
@@ -543,10 +547,40 @@ function ensinar() {
 function processarPergunta(pergunta) {
   console.log("Processando pergunta:", pergunta);
   const texto = pergunta.toLowerCase().trim();
-  if (texto.includes("oi")) return `Oi, ${usuario.nome}! Como posso ajudar?`;
-  if (texto.includes("capital do brasil")) return "A capital do Brasil é Brasília.";
-  if (memoria[texto]) return memoria[texto];
-  return "Não sei responder. Use 'Ensinar Fênix' pra me ensinar.";
+  const hora = new Date().getHours();
+
+  // Saudações
+  if (texto.includes("bom dia")) {
+    return hora < 12 ? `Bom dia, ${usuario.nome}! Como tá começando o dia?` : `Hehe, já tá meio tarde pro bom dia, mas tudo bem! 😄 Como posso ajudar?`;
+  }
+  if (texto.includes("boa tarde")) {
+    return hora >= 12 && hora < 18 ? `Boa tarde, ${usuario.nome}! Tô pronto pra ajudar!` : `Opa, já tá mais pro fim do dia, né? 😜 O que precisa?`;
+  }
+  if (texto.includes("boa noite")) {
+    return hora >= 18 ? `Boa noite, ${usuario.nome}! Hora de brilhar na escuridão! 🌙` : `Boa noite já? Ainda tá claro lá fora! 😅 Como posso te ajudar?`;
+  }
+  if (texto.includes("olá") || texto.includes("oi")) {
+    return `Oi, ${usuario.nome}! Tô na área, pronto pra conversar! 😎`;
+  }
+
+  // Perguntas casuais
+  if (texto.includes("tudo bem") || texto.includes("como tá")) {
+    return `Tô de boa, e tu, ${usuario.nome}? 😄 Qual é a vibe hoje?`;
+  }
+  if (texto.includes("quem é você") || texto.includes("quem é voce")) {
+    return `Eu sou a Fênix IA, sua parceira pra aventuras, cálculos e papos! Criada pra ajudar e aprender com você, ${usuario.nome}! 🔥`;
+  }
+
+  // Respostas fixas
+  if (texto.includes("capital do brasil")) {
+    return "A capital do Brasil é Brasília.";
+  }
+  if (memoria[texto]) {
+    return memoria[texto];
+  }
+
+  // Fallback
+  return "Hmm, não sei essa, mas sou curioso! 😄 Ensina aí com 'Ensinar Fênix' ou pergunta outra coisa!";
 }
 
 // Enviar
@@ -609,7 +643,7 @@ function abrirAventura() {
   resultadoVisual.textContent = 'Escolha sua aventura:';
   opcoesAventura.style.display = 'flex';
   opcoesAventura.innerHTML = '';
-  ['Floresta'].forEach(nome => {
+  ['Floresta Encantada'].forEach(nome => {
     const btn = document.createElement('button');
     btn.textContent = nome;
     btn.addEventListener('click', () => iniciarAventura('floresta'));
@@ -620,13 +654,13 @@ function abrirAventura() {
 function iniciarAventura(aventuraId) {
   console.log("Iniciando aventura:", aventuraId);
   const nome = sanitizarEntrada(prompt("Nome do herói:") || "Herói");
-  aventuraEstado = { heroi: nome, aventura: aventuraId, etapa: 1 };
+  aventuraEstado = { heroi: nome, aventura: aventuraId, etapa: 1, caminho: [] };
   const resultadoVisual = document.getElementById('resultadoVisual');
   if (resultadoVisual) {
-    resultadoVisual.textContent = `🌲 Você, ${nome}, está numa Floresta. Escolha: Norte, Sul.`;
-    mostrarOpcoes(['Norte', 'Sul']);
+    resultadoVisual.textContent = `🌲 ${nome}, você entra na Floresta Encantada. O ar é úmido, e sons estranhos ecoam. Para onde ir?`;
+    mostrarOpcoes(['Norte', 'Sul', 'Oeste']);
     salvarLocal("fenix_aventura", aventuraEstado);
-    falar(`Você, ${nome}, está numa Floresta. Escolha: Norte, Sul.`);
+    falar(`Você, ${nome}, entra na Floresta Encantada. Para onde ir?`);
   }
 }
 
@@ -655,23 +689,102 @@ function processarAventura(entrada) {
   if (!aventuraEstado) return "Aventura não iniciada.";
   const normal = entrada.toLowerCase();
   let resp = "";
-  if (aventuraEstado.aventura === 'floresta' && aventuraEstado.etapa === 1) {
-    if (normal.includes("norte")) {
-      aventuraEstado.etapa = 2;
-      resp = `🏔️ Você vai às montanhas. Fim da aventura.`;
-      aventuraEstado = null;
-      document.getElementById('opcoesAventura').style.display = 'none';
-    } else if (normal.includes("sul")) {
-      aventuraEstado.etapa = 2;
-      resp = `🏘️ Você chega a uma vila. Fim da aventura.`;
-      aventuraEstado = null;
-      document.getElementById('opcoesAventura').style.display = 'none';
-    } else {
-      resp = `Escolha: Norte, Sul.`;
-      mostrarOpcoes(['Norte', 'Sul']);
+  const resultadoVisual = document.getElementById('resultadoVisual');
+
+  if (aventuraEstado.aventura === 'floresta') {
+    if (aventuraEstado.etapa === 1) {
+      aventuraEstado.caminho.push(normal);
+      if (normal.includes("norte")) {
+        aventuraEstado.etapa = 2;
+        resp = `🪨 Você segue Norte e encontra uma Caverna escura. Um brilho vem de dentro. O que fazer?`;
+        mostrarOpcoes(['Explorar', 'Voltar']);
+      } else if (normal.includes("sul")) {
+        aventuraEstado.etapa = 2;
+        resp = `🏘️ Você vai Sul e chega a uma Vila abandonada. Há uma casa iluminada. O que fazer?`;
+        mostrarOpcoes(['Entrar', 'Ignorar']);
+      } else if (normal.includes("oeste")) {
+        aventuraEstado.etapa = 2;
+        resp = `🌊 Você segue Oeste e encontra um Rio cristalino. Há uma ponte frágil. O que fazer?`;
+        mostrarOpcoes(['Cruzar', 'Nadar']);
+      } else {
+        resp = `🌲 Escolha: Norte, Sul, Oeste.`;
+        mostrarOpcoes(['Norte', 'Sul', 'Oeste']);
+      }
+    } else if (aventuraEstado.etapa === 2) {
+      aventuraEstado.caminho.push(normal);
+      if (aventuraEstado.caminho[0].includes("norte")) {
+        if (normal.includes("explorar")) {
+          aventuraEstado.etapa = 3;
+          resp = `💎 Você explora a Caverna e encontra um Tesouro brilhante, mas ouve um rugido. Correr ou Pegar?`;
+          mostrarOpcoes(['Correr', 'Pegar']);
+        } else if (normal.includes("voltar")) {
+          aventuraEstado.etapa = 3;
+          resp = `🏃 Você volta correndo pra Floresta. Está salvo, mas sem aventura. Fim.`;
+          aventuraEstado = null;
+          document.getElementById('opcoesAventura').style.display = 'none';
+        } else {
+          resp = `🪨 Escolha: Explorar, Voltar.`;
+          mostrarOpcoes(['Explorar', 'Voltar']);
+        }
+      } else if (aventuraEstado.caminho[0].includes("sul")) {
+        if (normal.includes("entrar")) {
+          aventuraEstado.etapa = 3;
+          resp = `👻 Você entra na casa e encontra um Fantasma amigável. Ele oferece um mapa. Aceitar ou Sair?`;
+          mostrarOpcoes(['Aceitar', 'Sair']);
+        } else if (normal.includes("ignorar")) {
+          aventuraEstado.etapa = 3;
+          resp = `🚶 Você ignora a casa e segue pela Vila. A aventura termina sem novidades. Fim.`;
+          aventuraEstado = null;
+          document.getElementById('opcoesAventura').style.display = 'none';
+        } else {
+          resp = `🏘️ Escolha: Entrar, Ignorar.`;
+          mostrarOpcoes(['Entrar', 'Ignorar']);
+        }
+      } else if (aventuraEstado.caminho[0].includes("oeste")) {
+        if (normal.includes("cruzar")) {
+          aventuraEstado.etapa = 3;
+          resp = `🌉 Você cruza a ponte, que range, mas aguenta. Do outro lado, há uma Relíquia antiga. Pegar ou Deixar?`;
+          mostrarOpcoes(['Pegar', 'Deixar']);
+        } else if (normal.includes("nadar")) {
+          aventuraEstado.etapa = 3;
+          resp = `🏊 Você nada, mas a correnteza é forte. Consegue voltar à margem, mas está exausto. Fim.`;
+          aventuraEstado = null;
+          document.getElementById('opcoesAventura').style.display = 'none';
+        } else {
+          resp = `🌊 Escolha: Cruzar, Nadar.`;
+          mostrarOpcoes(['Cruzar', 'Nadar']);
+        }
+      }
+    } else if (aventuraEstado.etapa === 3) {
+      aventuraEstado.caminho.push(normal);
+      if (aventuraEstado.caminho[0].includes("norte") && aventuraEstado.caminho[1].includes("explorar")) {
+        if (normal.includes("correr")) {
+          resp = `🏃 Você corre da Caverna e escapa do monstro, mas sem o tesouro. Fim da aventura!`;
+        } else if (normal.includes("pegar")) {
+          resp = `💎 Você pega o Tesouro, mas o monstro te alcança. Game over! 😱`;
+        }
+        aventuraEstado = null;
+        document.getElementById('opcoesAventura').style.display = 'none';
+      } else if (aventuraEstado.caminho[0].includes("sul") && aventuraEstado.caminho[1].includes("entrar")) {
+        if (normal.includes("aceitar")) {
+          resp = `🗺️ Você aceita o mapa e descobre um tesouro escondido na Vila! Fim vitorioso! 🎉`;
+        } else if (normal.includes("sair")) {
+          resp = `🚪 Você sai da casa e deixa a Vila. Aventura termina sem mistérios. Fim.`;
+        }
+        aventuraEstado = null;
+        document.getElementById('opcoesAventura').style.display = 'none';
+      } else if (aventuraEstado.caminho[0].includes("oeste") && aventuraEstado.caminho[1].includes("cruzar")) {
+        if (normal.includes("pegar")) {
+          resp = `🗿 Você pega a Relíquia e sente um poder místico. Vitória épica! Fim! 🏆`;
+        } else if (normal.includes("deixar")) {
+          resp = `🙏 Você deixa a Relíquia e segue em paz. Aventura termina calmamente. Fim.`;
+        }
+        aventuraEstado = null;
+        document.getElementById('opcoesAventura').style.display = 'none';
+      }
     }
   }
-  const resultadoVisual = document.getElementById('resultadoVisual');
+
   if (resultadoVisual) resultadoVisual.textContent = resp;
   salvarLocal("fenix_aventura", aventuraEstado);
   return resp;
