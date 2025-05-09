@@ -89,21 +89,45 @@ async function carregarJSON(caminho) {
 
 // Salvar no localStorage
 function salvarLocal(nome, dados) {
-  console.log(`Salvando ${nome}...`);
+  console.log(`Salvando ${nome} no localStorage...`);
   try {
     localStorage.setItem(nome, JSON.stringify(dados));
+    console.log(`Dados salvos com sucesso: ${nome}`);
   } catch (e) {
-    console.error(`Erro ao salvar ${nome}:`, e);
+    console.error(`Erro ao salvar ${nome} no localStorage:`, e);
+    showError(`Falha ao salvar ${nome}. Verifique o console.`);
   }
 }
 
 // Carregar dados
 async function carregarTudo() {
-  console.log("Carregando dados...");
+  console.log("Carregando todos os dados...");
   memoria = await carregarJSON("dados/memoria.json") || {};
   usuario = await carregarJSON("dados/usuario.json") || { nome: "amigo" };
-  chatHistory = JSON.parse(localStorage.getItem("fenix_chat_history")) || [];
-  mathHistory = JSON.parse(localStorage.getItem("fenix_math_history")) || [];
+  
+  // Carregar históricos do localStorage com validação
+  try {
+    const chatData = localStorage.getItem("fenix_chat_history");
+    chatHistory = chatData ? JSON.parse(chatData) : [];
+    if (!Array.isArray(chatHistory)) throw new Error("Chat history corrompido.");
+    console.log("Chat history carregado:", chatHistory);
+  } catch (e) {
+    console.error("Erro ao carregar fenix_chat_history:", e);
+    chatHistory = [];
+    salvarLocal("fenix_chat_history", chatHistory);
+  }
+  
+  try {
+    const mathData = localStorage.getItem("fenix_math_history");
+    mathHistory = mathData ? JSON.parse(mathData) : [];
+    if (!Array.isArray(mathHistory)) throw new Error("Math history corrompido.");
+    console.log("Math history carregado:", mathHistory);
+  } catch (e) {
+    console.error("Erro ao carregar fenix_math_history:", e);
+    mathHistory = [];
+    salvarLocal("fenix_math_history", mathHistory);
+  }
+  
   vozConfig = JSON.parse(localStorage.getItem("fenix_voz_config")) || { pitch: 1.0, rate: 1.0 };
   console.log("Dados carregados:", { memoria, usuario, chatHistory, mathHistory, vozConfig });
 }
@@ -332,7 +356,7 @@ function detectarCores() {
   for (let i = 0; i < imageData.length; i += 4) {
     const r = Math.round(imageData[i] / 10) * 10;
     const g = Math.round(imageData[i + 1] / 10) * 10;
-    const b = Math.round(imageData[i + 2) / 10) * 10;
+    const b = Math.round(imageData[i + 2] / 10) * 10;
     const key = `${r},${g},${b}`;
     colorMap[key] = (colorMap[key] || 0) + 1;
   }
